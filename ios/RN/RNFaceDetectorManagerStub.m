@@ -31,7 +31,6 @@
 - (void)setMode:(id)json { }
 
 - (void)maybeStartFaceDetectionOnSession:(AVCaptureSession *)session withPreviewLayer:(AVCaptureVideoPreviewLayer *)previewLayer {
-    RCTLogWarn(@"FaceDetector not integrated, stub used!");
 }
 - (void)stopFaceDetection { }
 
