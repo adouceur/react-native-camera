@@ -126,6 +126,8 @@ interface TakePictureOptions {
 
     /** Android only */
     fixOrientation?: boolean;
+    orientation?: string;
+
     /** iOS only */
     forceUpOrientation?: boolean;
 }

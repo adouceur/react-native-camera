@@ -75,6 +75,22 @@ public class ResolveTakenPictureAsyncTask extends AsyncTask<Void, Void, Writable
                     mBitmap = rotateBitmap(mBitmap, getImageRotation(orientation));
                 }
 
+                if (mOptions.hasKey("orientation")) {
+                    String deviceOrientation = mOptions.getString("orientation");
+                    int rotationDegrees = 0;
+                    if (deviceOrientation.equals("LANDSCAPE_LEFT")
+                        && mBitmap.getWidth() < mBitmap.getHeight()
+                    ) {
+                        rotationDegrees = 270;
+                    }
+                    if (deviceOrientation.equals("LANDSCAPE_RIGHT")
+                        && mBitmap.getWidth() < mBitmap.getHeight()
+                    ) {
+                        rotationDegrees = 90;
+                    }
+                    mBitmap = rotateBitmap(mBitmap, rotationDegrees);
+                }
+
                 if (mOptions.hasKey("mirrorImage") && mOptions.getBoolean("mirrorImage")) {
                     mBitmap = flipHorizontally(mBitmap);
                 }

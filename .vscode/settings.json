@@ -1,0 +1,6 @@
+{
+  "search.exclude": {
+    "**/lwansbrough": true,
+    "Camera.js": true
+  }
+}

@@ -24,6 +24,7 @@ type PictureOptions = {
   exif?: boolean,
   width?: number,
   fixOrientation?: boolean,
+  orientation?: string,
   forceUpOrientation?: boolean,
 };
 
