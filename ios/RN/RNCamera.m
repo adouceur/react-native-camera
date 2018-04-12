@@ -33,6 +33,7 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
     if ((self = [super init])) {
         self.bridge = bridge;
         self.session = [AVCaptureSession new];
+        self.session.sessionPreset = AVCaptureSessionPresetPhoto;
         self.sessionQueue = dispatch_queue_create("cameraQueue", DISPATCH_QUEUE_SERIAL);
         self.faceDetectorManager = [self createFaceDetectorManager];
 #if !(TARGET_IPHONE_SIMULATOR)
@@ -316,12 +317,9 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
             
             UIImage *takenImage = [UIImage imageWithData:imageData];
             
-            CGRect frame = [_previewLayer metadataOutputRectOfInterestForRect:self.frame];
             CGImageRef takenCGImage = takenImage.CGImage;
             size_t width = CGImageGetWidth(takenCGImage);
             size_t height = CGImageGetHeight(takenCGImage);
-            CGRect cropRect = CGRectMake(frame.origin.x * width, frame.origin.y * height, frame.size.width * width, frame.size.height * height);
-            takenImage = [RNImageUtils cropImage:takenImage toRect:cropRect];
             
             if ([options[@"mirrorImage"] boolValue]) {
                 takenImage = [RNImageUtils mirrorImage:takenImage];
