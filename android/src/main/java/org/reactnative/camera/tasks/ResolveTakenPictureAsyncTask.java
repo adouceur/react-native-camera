@@ -158,9 +158,13 @@ public class ResolveTakenPictureAsyncTask extends AsyncTask<Void, Void, Writable
     private Bitmap resizeBitmap(Bitmap bm, int newWidth) {
         int width = bm.getWidth();
         int height = bm.getHeight();
-        float scaleRatio = (float) newWidth / (float) width;
-    
-        return Bitmap.createScaledBitmap(bm, newWidth, (int) (height * scaleRatio), true);
+        if (width > height) {
+            float scaleRatio = (float) newWidth / (float) width;
+            return Bitmap.createScaledBitmap(bm, newWidth, (int) (height * scaleRatio), true);
+        } else {
+            float scaleRatio = (float) newWidth / (float) height;
+            return Bitmap.createScaledBitmap(bm, (int) (width * scaleRatio), newWidth, true);
+        }
     }
 
     private Bitmap flipHorizontally(Bitmap source) {
