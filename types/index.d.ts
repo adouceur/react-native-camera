@@ -137,6 +137,7 @@ interface TakePictureResponse {
     height: number;
     uri: string;
     base64?: string;
+    size: number,
     exif?: { [name: string]: any };
 }
 

@@ -339,7 +339,8 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
             response[@"uri"] = [RNImageUtils writeImage:takenImageData toPath:path];
             response[@"width"] = @(takenImage.size.width);
             response[@"height"] = @(takenImage.size.height);
-            
+            response[@"size"] = @(takenImageData.length);
+
             if ([options[@"base64"] boolValue]) {
                 response[@"base64"] = [takenImageData base64EncodedStringWithOptions:0];
             }

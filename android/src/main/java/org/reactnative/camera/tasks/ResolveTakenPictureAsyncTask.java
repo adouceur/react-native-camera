@@ -105,10 +105,12 @@ public class ResolveTakenPictureAsyncTask extends AsyncTask<Void, Void, Writable
             // Upon rotating, write the image's dimensions to the response
             response.putInt("width", mBitmap.getWidth());
             response.putInt("height", mBitmap.getHeight());
-
+            
             // Cache compressed image in imageStream
             ByteArrayOutputStream imageStream = new ByteArrayOutputStream();
             mBitmap.compress(Bitmap.CompressFormat.JPEG, getQuality(), imageStream);
+
+            response.putInt("size", mBitmap.getByteCount());
 
             // Write compressed image to file in cache directory
             String filePath = writeStreamToFile(imageStream);
