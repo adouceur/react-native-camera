@@ -6,6 +6,7 @@
 #import <React/RCTLog.h>
 #import <React/RCTUtils.h>
 #import <React/UIView+React.h>
+#import <AVFoundation/AVCaptureSession.h>
 
 @interface RNCamera ()
 
@@ -310,16 +311,20 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
 - (void)takePicture:(NSDictionary *)options resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
 {
     AVCaptureConnection *connection = [self.stillImageOutput connectionWithMediaType:AVMediaTypeVideo];
-    [connection setVideoOrientation:[RNCameraUtils videoOrientationForDeviceOrientation:[[UIDevice currentDevice] orientation]]];
+    
+    AVCaptureVideoOrientation videoOrientation = AVCaptureVideoOrientationPortrait;
+    if ([options[@"orientation"] isEqualToString:@"LANDSCAPE_RIGHT"]) {
+        videoOrientation = AVCaptureVideoOrientationLandscapeRight;
+    } else if ([options[@"orientation"] isEqualToString:@"LANDSCAPE_LEFT"]) {
+        videoOrientation = AVCaptureVideoOrientationLandscapeLeft;
+    }
+    
+    [connection setVideoOrientation:videoOrientation];
     [self.stillImageOutput captureStillImageAsynchronouslyFromConnection:connection completionHandler: ^(CMSampleBufferRef imageSampleBuffer, NSError *error) {
         if (imageSampleBuffer && !error) {
             NSData *imageData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:imageSampleBuffer];
             
             UIImage *takenImage = [UIImage imageWithData:imageData];
-            
-            CGImageRef takenCGImage = takenImage.CGImage;
-            size_t width = CGImageGetWidth(takenCGImage);
-            size_t height = CGImageGetHeight(takenCGImage);
             
             if ([options[@"mirrorImage"] boolValue]) {
                 takenImage = [RNImageUtils mirrorImage:takenImage];
@@ -340,11 +345,11 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
             response[@"width"] = @(takenImage.size.width);
             response[@"height"] = @(takenImage.size.height);
             response[@"size"] = @(takenImageData.length);
-
+            
             if ([options[@"base64"] boolValue]) {
                 response[@"base64"] = [takenImageData base64EncodedStringWithOptions:0];
             }
-
+            
             
             
             if ([options[@"exif"] boolValue]) {
@@ -407,21 +412,21 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
         
         AVCaptureConnection *connection = [self.movieFileOutput connectionWithMediaType:AVMediaTypeVideo];
         [connection setVideoOrientation:[RNCameraUtils videoOrientationForInterfaceOrientation:[[UIApplication sharedApplication] statusBarOrientation]]];
-
+        
         if (options[@"codec"]) {
-          AVVideoCodecType videoCodecType = options[@"codec"];
-          if (@available(iOS 10, *)) {
-            if ([self.movieFileOutput.availableVideoCodecTypes containsObject:videoCodecType]) {
-              [self.movieFileOutput setOutputSettings:@{AVVideoCodecKey:videoCodecType} forConnection:connection];
-              self.videoCodecType = videoCodecType;
+            AVVideoCodecType videoCodecType = options[@"codec"];
+            if (@available(iOS 10, *)) {
+                if ([self.movieFileOutput.availableVideoCodecTypes containsObject:videoCodecType]) {
+                    [self.movieFileOutput setOutputSettings:@{AVVideoCodecKey:videoCodecType} forConnection:connection];
+                    self.videoCodecType = videoCodecType;
+                } else {
+                    RCTLogWarn(@"%s: Video Codec '%@' is not supported on this device.", __func__, videoCodecType);
+                }
             } else {
-              RCTLogWarn(@"%s: Video Codec '%@' is not supported on this device.", __func__, videoCodecType);
+                RCTLogWarn(@"%s: Setting videoCodec is only supported above iOS version 10.", __func__);
             }
-          } else {
-            RCTLogWarn(@"%s: Setting videoCodec is only supported above iOS version 10.", __func__);
-          }
         }
-
+        
         dispatch_async(self.sessionQueue, ^{
             [self updateFlashMode];
             NSString *path = [RNFileSystem generatePathInDirectory:[[RNFileSystem cacheDirectoryPath] stringByAppendingString:@"Camera"] withExtension:@".mov"];
@@ -736,27 +741,27 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
         }
     }
     if (success && self.videoRecordedResolve != nil) {
-      AVVideoCodecType videoCodec = self.videoCodecType;
-      if (videoCodec == nil) {
-        videoCodec = [self.movieFileOutput.availableVideoCodecTypes firstObject];
-      }
-
-      self.videoRecordedResolve(@{ @"uri": outputFileURL.absoluteString, @"codec":videoCodec });
+        AVVideoCodecType videoCodec = self.videoCodecType;
+        if (videoCodec == nil) {
+            videoCodec = [self.movieFileOutput.availableVideoCodecTypes firstObject];
+        }
+        
+        self.videoRecordedResolve(@{ @"uri": outputFileURL.absoluteString, @"codec":videoCodec });
     } else if (self.videoRecordedReject != nil) {
         self.videoRecordedReject(@"E_RECORDING_FAILED", @"An error occurred while recording a video.", error);
     }
     self.videoRecordedResolve = nil;
     self.videoRecordedReject = nil;
     self.videoCodecType = nil;
-
+    
     [self cleanupMovieFileCapture];
-
+    
 #if __has_include(<GoogleMobileVision/GoogleMobileVision.h>)
     // If face detection has been running prior to recording to file
     // we reenable it here (see comment in -record).
     [_faceDetectorManager maybeStartFaceDetectionOnSession:_session withPreviewLayer:_previewLayer];
 #endif
-
+    
     if (self.session.sessionPreset != AVCaptureSessionPresetHigh) {
         [self updateSessionPreset:AVCaptureSessionPresetHigh];
     }
@@ -776,7 +781,7 @@ static NSDictionary *defaultFaceDetectorOptions = nil;
         return [[faceDetectorManagerStubClass alloc] init];
     }
 #endif
-
+    
     return nil;
 }
 
